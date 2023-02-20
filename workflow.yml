@@ -1,8 +1,10 @@
 name: Check if User is registered at jobsimulator.dev
 
 on:
-  pull_request:
+  pull_request_target:
     branches: ["main"]
+
+permissions: write-all
 
 jobs:
   check:
@@ -14,13 +16,22 @@ jobs:
     steps:
       - name: Set up environment variables
         env:
-          USER_EMAIL: ${{ github.event.sender.email }}
+          USER_ID: ${{ github.event.sender.id }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          echo "USER_EMAIL=${USER_EMAIL}" >> $GITHUB_ENV
-      - name: Call serverless endpoint
+          echo "USER_ID=${USER_ID}" >> $GITHUB_ENV
+          echo "GH_TOKEN=${GH_TOKEN}" >> $GITHUB_ENV
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: echo "$GITHUB_CONTEXT"
+      - name: Checkout
+        uses: actions/checkout@v3.3.0
+      - name: Call API endpoint
         if: ${{ matrix.status == 200 }}
         run: |
-          status_code=$(curl -s -o /dev/null -w "%{http_code}" -X POST -d "${USER_EMAIL}" https://jobsim-pr-user-check.deno.dev)
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" -X POST -d "${USER_ID}" https://jobsim-pr-user-check.deno.dev)
           if [ $status_code -ne 200 ]; then
+            gh pr review ${{ github.event.number }} --comment --body "It looks like your GitHub account is not registered with JobSimulator.Dev. Please register at https://www.jobsimulator.dev to have your PR be tested automatically. Thanks!"
             exit 1
           fi
