@@ -28,6 +28,6 @@ jobs:
         run: |
           status_code=$(curl -s -o /dev/null -w "%{http_code}" -X POST -d "${USER_ID}" https://jobsim-pr-user-check.deno.dev)
           if [ $status_code -ne 200 ]; then
-            gh pr review ${{ github.event.number }} --comment --body "It looks like your GitHub account is not registered with JobSimulator.Dev. Please sign up at https://www.jobsimulator.dev to have your PR be tested automatically. Thanks!"
+            gh pr review ${{ github.event.number }} --comment --body "It looks like your GitHub account is not registered with CodebaseMentor. Please sign up at https://www.CodebaseMentor.com to have your PR be tested automatically. Thanks!"
             exit 1
           fi
